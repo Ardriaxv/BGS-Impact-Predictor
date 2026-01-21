@@ -1,5 +1,4 @@
-### 🔗 Live Site
-https://ardriaxv.github.io/BGS-Impact-Predictor
+[![View Site](https://img.shields.io/badge/Live_Site-Visit-blue)](https://ardriaxv.github.io/BGS-Impact-Predictor)
 
 Real Time BGS Impact Predictor
 A lightweight, browser based Elite Dangerous Background Simulation forecaster
