@@ -159,18 +159,6 @@ Commit your changes
 
 Open a pull request
 
-License
-You can choose any license you prefer.
-MIT is recommended for open source tools.
-
-Example:
-
-Code
-MIT License
-Copyright (c) 2026
-Support the Project
-If you find this tool useful:
-
 Star the repository
 
 Share it with your squadron
