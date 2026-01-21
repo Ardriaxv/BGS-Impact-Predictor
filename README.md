@@ -21,7 +21,9 @@ A clean, responsive UI with no backend required
 This tool is ideal for squadrons who want a fast, transparent way to understand how their work impacts the BGS without relying on external APIs or server side processing.
 
 Features
+
 🔹 Influence Prediction
+
 Calculates predicted influence for up to three factions
 
 Normalises influence to 100% (as in the real BGS)
@@ -31,6 +33,7 @@ Applies soft caps to prevent unrealistic swings
 Uses state based multipliers (War, Boom, Election, etc.)
 
 🔹 Activity Modelling
+
 Supports the main BGS relevant actions:
 
 Missions
@@ -44,6 +47,7 @@ Exploration data (cartographics)
 Each action is converted into a unified pressure value.
 
 🔹 Scenario Planner
+
 Add hypothetical extra work (e.g., more missions) and instantly see:
 
 Scenario influence
@@ -53,6 +57,7 @@ Additional swing
 Risk indicators (conflict, retreat, expansion)
 
 🔹 Zero Dependencies
+
 100% client side
 
 No frameworks
@@ -166,3 +171,5 @@ Star the repository
 Share it with your squadron
 
 Submit ideas or improvements
+
+© 2026 D. Hughson. All rights reserved.
