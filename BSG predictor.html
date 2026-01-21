@@ -1,0 +1,1288 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Real-Time BGS Impact Predictor</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <style>
+    :root {
+      --bg: #050814;
+      --panel: #0f172a;
+      --accent: #38bdf8;
+      --accent-soft: rgba(56, 189, 248, 0.15);
+      --text: #e5e7eb;
+      --muted: #9ca3af;
+      --danger: #f97373;
+      --success: #4ade80;
+      --border: #1f2937;
+      --font: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      padding: 0;
+      font-family: var(--font);
+      background: radial-gradient(circle at top, #0b1120 0, #020617 55%, #000 100%);
+      color: var(--text);
+    }
+
+    header {
+      padding: 1.5rem 1.5rem 0.75rem;
+      border-bottom: 1px solid var(--border);
+      background: linear-gradient(to bottom, rgba(15, 23, 42, 0.9), rgba(15, 23, 42, 0.6));
+      backdrop-filter: blur(10px);
+      position: sticky;
+      top: 0;
+      z-index: 10;
+    }
+
+    header h1 {
+      margin: 0;
+      font-size: 1.4rem;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: var(--accent);
+    }
+
+    header p {
+      margin: 0.25rem 0 0;
+      font-size: 0.85rem;
+      color: var(--muted);
+    }
+
+    main {
+      padding: 1rem;
+      max-width: 1200px;
+      margin: 0 auto 2rem;
+      display: grid;
+      grid-template-columns: minmax(0, 1.1fr) minmax(0, 1.2fr);
+      gap: 1rem;
+    }
+
+    @media (max-width: 960px) {
+      main {
+        grid-template-columns: minmax(0, 1fr);
+      }
+    }
+
+    .panel {
+      background: radial-gradient(circle at top left, rgba(56, 189, 248, 0.08), transparent 55%),
+                  radial-gradient(circle at bottom right, rgba(56, 189, 248, 0.06), transparent 55%),
+                  var(--panel);
+      border-radius: 0.75rem;
+      border: 1px solid var(--border);
+      padding: 1rem 1.1rem 1.1rem;
+      box-shadow: 0 18px 40px rgba(0, 0, 0, 0.6);
+      position: relative;
+      overflow: hidden;
+    }
+
+    .panel::before {
+      content: "";
+      position: absolute;
+      inset: 0;
+      background: radial-gradient(circle at top, rgba(56, 189, 248, 0.08), transparent 60%);
+      opacity: 0.4;
+      pointer-events: none;
+      mix-blend-mode: screen;
+    }
+
+    .panel-header {
+      display: flex;
+      align-items: baseline;
+      justify-content: space-between;
+      margin-bottom: 0.75rem;
+      position: relative;
+      z-index: 1;
+    }
+
+    .panel-header h2 {
+      margin: 0;
+      font-size: 1rem;
+      text-transform: uppercase;
+      letter-spacing: 0.12em;
+      color: var(--muted);
+    }
+
+    .panel-header span {
+      font-size: 0.75rem;
+      color: var(--muted);
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 0.75rem;
+    }
+
+    .grid-3 {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 0.75rem;
+    }
+
+    @media (max-width: 720px) {
+      .grid,
+      .grid-3 {
+        grid-template-columns: minmax(0, 1fr);
+      }
+    }
+
+    label {
+      display: block;
+      font-size: 0.75rem;
+      text-transform: uppercase;
+      letter-spacing: 0.12em;
+      color: var(--muted);
+      margin-bottom: 0.25rem;
+    }
+
+    input,
+    select {
+      width: 100%;
+      padding: 0.4rem 0.5rem;
+      border-radius: 0.4rem;
+      border: 1px solid var(--border);
+      background: rgba(15, 23, 42, 0.9);
+      color: var(--text);
+      font-size: 0.85rem;
+      outline: none;
+      transition: border-color 0.15s, box-shadow 0.15s, background 0.15s;
+    }
+
+    input:focus,
+    select:focus {
+      border-color: var(--accent);
+      box-shadow: 0 0 0 1px rgba(56, 189, 248, 0.4);
+      background: rgba(15, 23, 42, 1);
+    }
+
+    input[readonly] {
+      opacity: 0.8;
+      cursor: default;
+    }
+
+    .field-group {
+      margin-bottom: 0.6rem;
+      position: relative;
+      z-index: 1;
+    }
+
+    .tag-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.4rem;
+      margin-top: 0.25rem;
+    }
+
+    .tag {
+      font-size: 0.7rem;
+      text-transform: uppercase;
+      letter-spacing: 0.12em;
+      padding: 0.15rem 0.4rem;
+      border-radius: 999px;
+      border: 1px solid rgba(148, 163, 184, 0.4);
+      color: var(--muted);
+      background: rgba(15, 23, 42, 0.9);
+    }
+
+    .tag-accent {
+      border-color: rgba(56, 189, 248, 0.7);
+      color: var(--accent);
+      background: rgba(15, 23, 42, 0.9);
+    }
+
+    .tag-danger {
+      border-color: rgba(248, 113, 113, 0.7);
+      color: var(--danger);
+    }
+
+    .tag-success {
+      border-color: rgba(74, 222, 128, 0.7);
+      color: var(--success);
+    }
+
+    .btn-row {
+      display: flex;
+      gap: 0.5rem;
+      margin-top: 0.5rem;
+      position: relative;
+      z-index: 1;
+    }
+
+    button {
+      border-radius: 999px;
+      border: 1px solid var(--accent);
+      background: radial-gradient(circle at top, rgba(56, 189, 248, 0.3), rgba(56, 189, 248, 0.05));
+      color: var(--text);
+      padding: 0.45rem 0.9rem;
+      font-size: 0.8rem;
+      text-transform: uppercase;
+      letter-spacing: 0.16em;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 0.35rem;
+      transition: background 0.15s, transform 0.1s, box-shadow 0.15s, border-color 0.15s;
+    }
+
+    button span.dot {
+      width: 0.4rem;
+      height: 0.4rem;
+      border-radius: 999px;
+      background: var(--accent);
+      box-shadow: 0 0 8px rgba(56, 189, 248, 0.9);
+    }
+
+    button.secondary {
+      border-color: var(--border);
+      background: rgba(15, 23, 42, 0.9);
+      color: var(--muted);
+    }
+
+    button:hover {
+      background: radial-gradient(circle at top, rgba(56, 189, 248, 0.45), rgba(56, 189, 248, 0.12));
+      transform: translateY(-1px);
+      box-shadow: 0 12px 30px rgba(15, 23, 42, 0.9);
+    }
+
+    button.secondary:hover {
+      background: rgba(15, 23, 42, 1);
+      border-color: var(--accent-soft);
+    }
+
+    button:active {
+      transform: translateY(0);
+      box-shadow: none;
+    }
+
+    .pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.35rem;
+      padding: 0.2rem 0.55rem;
+      border-radius: 999px;
+      border: 1px solid rgba(148, 163, 184, 0.5);
+      font-size: 0.7rem;
+      text-transform: uppercase;
+      letter-spacing: 0.12em;
+      color: var(--muted);
+      background: rgba(15, 23, 42, 0.9);
+    }
+
+    .pill-dot {
+      width: 0.35rem;
+      height: 0.35rem;
+      border-radius: 999px;
+      background: #22c55e;
+      box-shadow: 0 0 6px rgba(34, 197, 94, 0.9);
+    }
+
+    .pill-warn {
+      border-color: rgba(248, 113, 113, 0.7);
+      color: var(--danger);
+    }
+
+    .pill-warn .pill-dot {
+      background: var(--danger);
+      box-shadow: 0 0 6px rgba(248, 113, 113, 0.9);
+    }
+
+    .pill-soft {
+      border-color: rgba(56, 189, 248, 0.7);
+      color: var(--accent);
+    }
+
+    .pill-soft .pill-dot {
+      background: var(--accent);
+      box-shadow: 0 0 6px rgba(56, 189, 248, 0.9);
+    }
+
+    .small {
+      font-size: 0.75rem;
+      color: var(--muted);
+    }
+
+    .muted {
+      color: var(--muted);
+    }
+
+    .divider {
+      height: 1px;
+      background: radial-gradient(circle at center, rgba(148, 163, 184, 0.5), transparent 70%);
+      margin: 0.6rem 0 0.7rem;
+      opacity: 0.6;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.8rem;
+      position: relative;
+      z-index: 1;
+    }
+
+    th,
+    td {
+      padding: 0.35rem 0.4rem;
+      text-align: left;
+      border-bottom: 1px solid rgba(31, 41, 55, 0.9);
+    }
+
+    th {
+      font-size: 0.7rem;
+      text-transform: uppercase;
+      letter-spacing: 0.12em;
+      color: var(--muted);
+      background: rgba(15, 23, 42, 0.9);
+      position: sticky;
+      top: 0;
+      z-index: 1;
+    }
+
+    tbody tr:nth-child(even) {
+      background: rgba(15, 23, 42, 0.7);
+    }
+
+    tbody tr:nth-child(odd) {
+      background: rgba(15, 23, 42, 0.4);
+    }
+
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.25rem;
+      padding: 0.1rem 0.4rem;
+      border-radius: 999px;
+      font-size: 0.7rem;
+      border: 1px solid rgba(148, 163, 184, 0.6);
+      color: var(--muted);
+      background: rgba(15, 23, 42, 0.9);
+    }
+
+    .badge-dot {
+      width: 0.3rem;
+      height: 0.3rem;
+      border-radius: 999px;
+      background: rgba(148, 163, 184, 0.9);
+    }
+
+    .badge-up {
+      border-color: rgba(74, 222, 128, 0.8);
+      color: var(--success);
+    }
+
+    .badge-up .badge-dot {
+      background: var(--success);
+    }
+
+    .badge-down {
+      border-color: rgba(248, 113, 113, 0.8);
+      color: var(--danger);
+    }
+
+    .badge-down .badge-dot {
+      background: var(--danger);
+    }
+
+    .badge-neutral {
+      border-color: rgba(56, 189, 248, 0.8);
+      color: var(--accent);
+    }
+
+    .badge-neutral .badge-dot {
+      background: var(--accent);
+    }
+
+    .pill-bar {
+      position: relative;
+      height: 0.45rem;
+      border-radius: 999px;
+      background: rgba(15, 23, 42, 0.9);
+      overflow: hidden;
+      border: 1px solid rgba(31, 41, 55, 0.9);
+    }
+
+    .pill-bar-fill {
+      position: absolute;
+      inset: 0;
+      transform-origin: left center;
+      background: linear-gradient(90deg, rgba(56, 189, 248, 0.1), rgba(56, 189, 248, 0.9));
+      box-shadow: 0 0 12px rgba(56, 189, 248, 0.8);
+    }
+
+    .pill-bar-fill-danger {
+      background: linear-gradient(90deg, rgba(248, 113, 113, 0.1), rgba(248, 113, 113, 0.9));
+      box-shadow: 0 0 12px rgba(248, 113, 113, 0.8);
+    }
+
+    .pill-bar-fill-success {
+      background: linear-gradient(90deg, rgba(74, 222, 128, 0.1), rgba(74, 222, 128, 0.9));
+      box-shadow: 0 0 12px rgba(74, 222, 128, 0.8);
+    }
+
+    .flex-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 0.5rem;
+    }
+
+    .flex-row-wrap {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.4rem;
+      align-items: center;
+    }
+
+    .chart-row {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 0.5rem;
+      margin-top: 0.5rem;
+    }
+
+    @media (max-width: 720px) {
+      .chart-row {
+        grid-template-columns: minmax(0, 1fr);
+      }
+    }
+
+    .chart-card {
+      border-radius: 0.6rem;
+      border: 1px solid rgba(31, 41, 55, 0.9);
+      padding: 0.45rem 0.5rem;
+      background: rgba(15, 23, 42, 0.9);
+    }
+
+    .chart-title {
+      font-size: 0.7rem;
+      text-transform: uppercase;
+      letter-spacing: 0.12em;
+      color: var(--muted);
+      margin-bottom: 0.25rem;
+    }
+
+    .chart-value {
+      font-size: 0.95rem;
+    }
+
+    .chart-sub {
+      font-size: 0.7rem;
+      color: var(--muted);
+      margin-top: 0.15rem;
+    }
+
+    .scenario-note {
+      font-size: 0.75rem;
+      color: var(--muted);
+      margin-top: 0.35rem;
+    }
+
+    .scenario-note strong {
+      color: var(--accent);
+      font-weight: 500;
+    }
+
+    .status-strip {
+      margin-top: 0.5rem;
+      padding: 0.4rem 0.5rem;
+      border-radius: 0.6rem;
+      border: 1px solid rgba(56, 189, 248, 0.4);
+      background: rgba(15, 23, 42, 0.9);
+      font-size: 0.75rem;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 0.5rem;
+    }
+
+    .status-strip span.label {
+      text-transform: uppercase;
+      letter-spacing: 0.12em;
+      color: var(--muted);
+      font-size: 0.7rem;
+    }
+
+    .status-strip span.value {
+      color: var(--accent);
+      font-weight: 500;
+    }
+
+    .status-strip span.value-warn {
+      color: var(--danger);
+    }
+
+    .status-strip span.value-ok {
+      color: var(--success);
+    }
+
+    .hint {
+      font-size: 0.7rem;
+      color: var(--muted);
+      margin-top: 0.25rem;
+    }
+
+    .hint code {
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+      font-size: 0.7rem;
+      background: rgba(15, 23, 42, 0.9);
+      padding: 0.1rem 0.25rem;
+      border-radius: 0.3rem;
+      border: 1px solid rgba(31, 41, 55, 0.9);
+      color: var(--accent);
+    }
+
+    .fade {
+      opacity: 0.7;
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>Real-Time BGS Impact Predictor</h1>
+    <p>Single-system, multi-faction tick forecast with live activity pressure and scenario planning.</p>
+  </header>
+
+  <main>
+    <!-- LEFT: INPUTS -->
+    <section class="panel" aria-label="Inputs">
+      <div class="panel-header">
+        <h2>System &amp; activity input</h2>
+        <span id="tick-window-label">Tick window: next 24h (approx)</span>
+      </div>
+
+      <div class="field-group">
+        <div class="grid">
+          <div>
+            <label for="system-name">System name</label>
+            <input id="system-name" type="text" placeholder="e.g. Jonai" />
+          </div>
+          <div>
+            <label for="population">Population</label>
+            <input id="population" type="number" min="1" step="1" placeholder="e.g. 12000000" />
+          </div>
+        </div>
+        <div class="tag-row">
+          <span class="tag">Single system model</span>
+          <span class="tag tag-accent">Elite BGS style tick</span>
+        </div>
+      </div>
+
+      <div class="divider"></div>
+
+      <!-- FACTIONS -->
+      <div class="field-group">
+        <div class="flex-row">
+          <label>Factions in system</label>
+          <span class="small">Up to 3 factions for this quick model.</span>
+        </div>
+
+        <div class="grid-3" style="margin-top:0.35rem;">
+          <!-- Faction 1 -->
+          <div>
+            <label for="f1-name">Faction 1 name</label>
+            <input id="f1-name" type="text" placeholder="Controlling faction" />
+            <label for="f1-inf" style="margin-top:0.35rem;">Current influence %</label>
+            <input id="f1-inf" type="number" min="0" max="100" step="0.1" placeholder="e.g. 45.0" />
+            <label for="f1-state" style="margin-top:0.35rem;">Primary state</label>
+            <select id="f1-state">
+              <option value="none">None / Neutral</option>
+              <option value="boom">Boom</option>
+              <option value="war">War / Civil War</option>
+              <option value="election">Election</option>
+              <option value="famine">Famine</option>
+              <option value="outbreak">Outbreak</option>
+              <option value="expansion">Expansion</option>
+              <option value="retreat">Retreat</option>
+            </select>
+          </div>
+
+          <!-- Faction 2 -->
+          <div>
+            <label for="f2-name">Faction 2 name</label>
+            <input id="f2-name" type="text" placeholder="Rival / neighbour" />
+            <label for="f2-inf" style="margin-top:0.35rem;">Current influence %</label>
+            <input id="f2-inf" type="number" min="0" max="100" step="0.1" placeholder="e.g. 30.0" />
+            <label for="f2-state" style="margin-top:0.35rem;">Primary state</label>
+            <select id="f2-state">
+              <option value="none">None / Neutral</option>
+              <option value="boom">Boom</option>
+              <option value="war">War / Civil War</option>
+              <option value="election">Election</option>
+              <option value="famine">Famine</option>
+              <option value="outbreak">Outbreak</option>
+              <option value="expansion">Expansion</option>
+              <option value="retreat">Retreat</option>
+            </select>
+          </div>
+
+          <!-- Faction 3 -->
+          <div>
+            <label for="f3-name">Faction 3 name</label>
+            <input id="f3-name" type="text" placeholder="Minor presence" />
+            <label for="f3-inf" style="margin-top:0.35rem;">Current influence %</label>
+            <input id="f3-inf" type="number" min="0" max="100" step="0.1" placeholder="e.g. 10.0" />
+            <label for="f3-state" style="margin-top:0.35rem;">Primary state</label>
+            <select id="f3-state">
+              <option value="none">None / Neutral</option>
+              <option value="boom">Boom</option>
+              <option value="war">War / Civil War</option>
+              <option value="election">Election</option>
+              <option value="famine">Famine</option>
+              <option value="outbreak">Outbreak</option>
+              <option value="expansion">Expansion</option>
+              <option value="retreat">Retreat</option>
+            </select>
+          </div>
+        </div>
+
+        <p class="hint">
+          Hint: influences should roughly sum to <code>100%</code> for best predictions, but the model will normalise if needed.
+        </p>
+      </div>
+
+      <div class="divider"></div>
+
+      <!-- ACTIVITY INPUT -->
+      <div class="field-group">
+        <div class="flex-row">
+          <label>Today's activity (pressure per faction)</label>
+          <span class="small">Approximate your squadron's work since last tick.</span>
+        </div>
+
+        <div class="grid-3" style="margin-top:0.35rem;">
+          <!-- F1 activity -->
+          <div>
+            <label>Faction 1 activity</label>
+            <div class="field-group">
+              <input id="f1-missions" type="number" min="0" step="1" placeholder="Missions completed" />
+              <span class="small muted">Missions</span>
+            </div>
+            <div class="field-group">
+              <input id="f1-bonds" type="number" min="0" step="10000" placeholder="Combat bonds / bounties (cr)" />
+              <span class="small muted">Combat bonds &amp; bounties</span>
+            </div>
+            <div class="field-group">
+              <input id="f1-trade" type="number" step="10000" placeholder="Trade profit (cr, negative to undermine)" />
+              <span class="small muted">Trade profit / loss</span>
+            </div>
+            <div class="field-group">
+              <input id="f1-carto" type="number" min="0" step="10000" placeholder="Cartographics sold (cr)" />
+              <span class="small muted">Exploration data</span>
+            </div>
+          </div>
+
+          <!-- F2 activity -->
+          <div>
+            <label>Faction 2 activity</label>
+            <div class="field-group">
+              <input id="f2-missions" type="number" min="0" step="1" placeholder="Missions completed" />
+              <span class="small muted">Missions</span>
+            </div>
+            <div class="field-group">
+              <input id="f2-bonds" type="number" min="0" step="10000" placeholder="Combat bonds / bounties (cr)" />
+              <span class="small muted">Combat bonds &amp; bounties</span>
+            </div>
+            <div class="field-group">
+              <input id="f2-trade" type="number" step="10000" placeholder="Trade profit (cr, negative to undermine)" />
+              <span class="small muted">Trade profit / loss</span>
+            </div>
+            <div class="field-group">
+              <input id="f2-carto" type="number" min="0" step="10000" placeholder="Cartographics sold (cr)" />
+              <span class="small muted">Exploration data</span>
+            </div>
+          </div>
+
+          <!-- F3 activity -->
+          <div>
+            <label>Faction 3 activity</label>
+            <div class="field-group">
+              <input id="f3-missions" type="number" min="0" step="1" placeholder="Missions completed" />
+              <span class="small muted">Missions</span>
+            </div>
+            <div class="field-group">
+              <input id="f3-bonds" type="number" min="0" step="10000" placeholder="Combat bonds / bounties (cr)" />
+              <span class="small muted">Combat bonds &amp; bounties</span>
+            </div>
+            <div class="field-group">
+              <input id="f3-trade" type="number" step="10000" placeholder="Trade profit (cr, negative to undermine)" />
+              <span class="small muted">Trade profit / loss</span>
+            </div>
+            <div class="field-group">
+              <input id="f3-carto" type="number" min="0" step="10000" placeholder="Cartographics sold (cr)" />
+              <span class="small muted">Exploration data</span>
+            </div>
+          </div>
+        </div>
+
+        <p class="hint">
+          This model converts all activity into a single <code>pressure</code> value per faction, scaled by population and state.
+        </p>
+      </div>
+
+      <div class="divider"></div>
+
+      <!-- SCENARIO -->
+      <div class="field-group">
+        <div class="flex-row">
+          <label>Scenario planner (optional)</label>
+          <span class="small">Add extra work you might still do before tick.</span>
+        </div>
+
+        <div class="grid-3" style="margin-top:0.35rem;">
+          <div>
+            <label>Faction 1 extra missions</label>
+            <input id="f1-extra-missions" type="number" min="0" step="1" placeholder="+ missions" />
+          </div>
+          <div>
+            <label>Faction 2 extra missions</label>
+            <input id="f2-extra-missions" type="number" min="0" step="1" placeholder="+ missions" />
+          </div>
+          <div>
+            <label>Faction 3 extra missions</label>
+            <input id="f3-extra-missions" type="number" min="0" step="1" placeholder="+ missions" />
+          </div>
+        </div>
+
+        <p class="scenario-note">
+          Scenario work is added on top of today's activity and only affects the <strong>scenario prediction</strong>, not the base tick.
+        </p>
+      </div>
+
+      <div class="btn-row">
+        <button id="predict-btn" type="button">
+          <span class="dot"></span>
+          Predict tick outcome
+        </button>
+        <button id="scenario-btn" type="button" class="secondary">
+          Scenario only
+        </button>
+      </div>
+
+      <p class="hint fade">
+        You can wire this to live journal / API data later. For now, it's a self-contained front-end model.
+      </p>
+    </section>
+
+    <!-- RIGHT: OUTPUTS -->
+    <section class="panel" aria-label="Outputs">
+      <div class="panel-header">
+        <h2>Predicted tick outcome</h2>
+        <span id="system-label">No system loaded</span>
+      </div>
+
+      <!-- SUMMARY STRIP -->
+      <div class="flex-row-wrap" style="margin-bottom:0.5rem; position:relative; z-index:1;">
+        <div class="pill">
+          <span class="pill-dot"></span>
+          <span id="model-health">Model: Uncalibrated demo</span>
+        </div>
+        <div class="pill pill-soft">
+          <span class="pill-dot"></span>
+          <span id="confidence-label">Confidence band: ±2.0% (nominal)</span>
+        </div>
+        <div class="pill pill-warn" id="risk-pill" style="display:none;">
+          <span class="pill-dot"></span>
+          <span id="risk-label">Risk: None</span>
+        </div>
+      </div>
+
+      <div class="divider"></div>
+
+      <!-- TABLE -->
+      <div style="max-height:260px; overflow:auto; border-radius:0.6rem; border:1px solid rgba(31,41,55,0.9);">
+        <table>
+          <thead>
+            <tr>
+              <th>Faction</th>
+              <th>State</th>
+              <th>Current %</th>
+              <th>Predicted %</th>
+              <th>Δ Influence</th>
+              <th>Scenario %</th>
+              <th>Risk / Notes</th>
+            </tr>
+          </thead>
+          <tbody id="results-body">
+            <tr>
+              <td colspan="7" style="text-align:center; padding:0.8rem 0; color:var(--muted);">
+                No prediction yet. Enter data and click <strong>Predict tick outcome</strong>.
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <!-- MINI CHARTS -->
+      <div class="chart-row">
+        <div class="chart-card">
+          <div class="chart-title">System pressure</div>
+          <div class="chart-value" id="system-pressure">0.00</div>
+          <div class="chart-sub">Total normalised activity across all factions.</div>
+          <div class="pill-bar" style="margin-top:0.3rem;">
+            <div class="pill-bar-fill" id="system-pressure-bar" style="transform:scaleX(0);"></div>
+          </div>
+        </div>
+
+        <div class="chart-card">
+          <div class="chart-title">Net swing</div>
+          <div class="chart-value" id="net-swing">0.0%</div>
+          <div class="chart-sub">Largest single-faction predicted movement this tick.</div>
+          <div class="pill-bar" style="margin-top:0.3rem;">
+            <div class="pill-bar-fill-success" id="net-swing-bar" style="transform:scaleX(0);"></div>
+          </div>
+        </div>
+
+        <div class="chart-card">
+          <div class="chart-title">Scenario impact</div>
+          <div class="chart-value" id="scenario-impact">0.0%</div>
+          <div class="chart-sub">Extra swing from planned work vs base prediction.</div>
+          <div class="pill-bar" style="margin-top:0.3rem;">
+            <div class="pill-bar-fill-danger" id="scenario-impact-bar" style="transform:scaleX(0);"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- STATUS STRIP -->
+      <div class="status-strip">
+        <div>
+          <span class="label">Conflict / expansion risk</span>
+        </div>
+        <div>
+          <span class="value" id="conflict-risk">Insufficient data</span>
+        </div>
+      </div>
+
+      <p class="hint" style="margin-top:0.4rem;">
+        This is a simplified, transparent model: it keeps total influence at <code>100%</code>, applies soft caps, and uses state-based multipliers.
+      </p>
+    </section>
+  </main>
+
+  <script>
+    (function () {
+      const clamp = (v, min, max) => Math.min(max, Math.max(min, v || 0));
+      const log1p = (v) => Math.log(1 + Math.max(0, v || 0));
+
+      function stateMultiplier(state, kind) {
+        const s = (state || "none").toLowerCase();
+        const k = kind || "generic";
+
+        const base = {
+          missions: 1.0,
+          combat: 1.0,
+          trade: 1.0,
+          carto: 0.8
+        };
+
+        const table = {
+          boom: { missions: 1.2, combat: 0.9, trade: 1.3, carto: 1.0 },
+          war: { missions: 0.8, combat: 1.6, trade: 0.7, carto: 0.7 },
+          election: { missions: 1.4, combat: 0.4, trade: 1.0, carto: 0.8 },
+          famine: { missions: 1.1, combat: 0.9, trade: 1.2, carto: 0.9 },
+          outbreak: { missions: 1.1, combat: 0.9, trade: 0.9, carto: 1.2 },
+          expansion: { missions: 1.0, combat: 1.0, trade: 1.0, carto: 1.0 },
+          retreat: { missions: 0.9, combat: 0.9, trade: 0.9, carto: 0.9 },
+          none: base
+        };
+
+        const row = table[s] || base;
+        return row[k] || 1.0;
+      }
+
+      function populationScale(pop) {
+        const p = Math.max(1, pop || 1);
+        return 1 / Math.log(1 + p);
+      }
+
+      function softCapDelta(pressure, cap) {
+        const C = cap || 6.0;
+        const k = 0.35;
+        const x = pressure || 0;
+        const sign = x >= 0 ? 1 : -1;
+        const mag = Math.abs(x);
+        const scaled = (C * mag) / (mag + k);
+        return sign * scaled;
+      }
+
+      function readFactionInputs(idx) {
+        const name = document.getElementById(`f${idx}-name`).value.trim();
+        const inf = parseFloat(document.getElementById(`f${idx}-inf`).value);
+        const state = document.getElementById(`f${idx}-state`).value;
+
+        const missions = parseFloat(document.getElementById(`f${idx}-missions`).value) || 0;
+        const bonds = parseFloat(document.getElementById(`f${idx}-bonds`).value) || 0;
+        const trade = parseFloat(document.getElementById(`f${idx}-trade`).value) || 0;
+        const carto = parseFloat(document.getElementById(`f${idx}-carto`).value) || 0;
+
+        const extraMissions = parseFloat(document.getElementById(`f${idx}-extra-missions`).value) || 0;
+
+        return {
+          idx,
+          name: name || `Faction ${idx}`,
+          inf: isNaN(inf) ? 0 : inf,
+          state,
+          missions,
+          bonds,
+          trade,
+          carto,
+          extraMissions
+        };
+      }
+
+      function computePressure(f, pop) {
+        const popScale = populationScale(pop);
+
+        const kMissions = 1.0;
+        const kBonds = 0.000015;
+        const kTrade = 0.00001;
+        const kCarto = 0.000008;
+
+        const pMissions =
+          kMissions * stateMultiplier(f.state, "missions") * log1p(f.missions);
+        const pBonds =
+          kBonds * stateMultiplier(f.state, "combat") * log1p(f.bonds);
+        const pTrade =
+          kTrade * stateMultiplier(f.state, "trade") * (f.trade >= 0 ? log1p(f.trade) : -log1p(-f.trade));
+        const pCarto =
+          kCarto * stateMultiplier(f.state, "carto") * log1p(f.carto);
+
+        const raw = pMissions + pBonds + pTrade + pCarto;
+        const scaled = raw * popScale;
+
+        return {
+          raw,
+          scaled
+        };
+      }
+
+      function computeScenarioPressure(f, pop) {
+        const base = computePressure(f, pop);
+        const extra = {
+          missions: f.extraMissions || 0,
+          bonds: 0,
+          trade: 0,
+          carto: 0
+        };
+
+        const popScale = populationScale(pop);
+        const kMissions = 1.0;
+
+        const pExtra =
+          kMissions * stateMultiplier(f.state, "missions") * log1p(extra.missions);
+
+        const scaledExtra = pExtra * popScale;
+
+        return {
+          base,
+          extra: {
+            raw: pExtra,
+            scaled: scaledExtra
+          }
+        };
+      }
+
+      function normaliseInfluence(factions) {
+        const total = factions.reduce((sum, f) => sum + (f.inf || 0), 0);
+        if (total <= 0) return factions;
+
+        return factions.map((f) => ({
+          ...f,
+          inf: (f.inf / total) * 100
+        }));
+      }
+
+      function predictTick(baseOnly) {
+        const systemName = document.getElementById("system-name").value.trim() || "Unnamed system";
+        const population = parseFloat(document.getElementById("population").value) || 1;
+
+        let factions = [1, 2, 3].map((i) => readFactionInputs(i));
+        const anyNamed = factions.some((f) => f.name && f.name.trim().length > 0);
+        if (!anyNamed) {
+          alert("Please enter at least one faction with influence.");
+          return;
+        }
+
+        factions = factions.filter((f) => f.name.trim().length > 0 || f.inf > 0);
+        if (factions.length === 0) {
+          alert("Please enter at least one faction with influence.");
+          return;
+        }
+
+        factions = normaliseInfluence(factions);
+
+        const pressures = [];
+        let totalScaled = 0;
+        let totalScaledScenario = 0;
+
+        factions.forEach((f) => {
+          const p = computeScenarioPressure(f, population);
+          const scaled = p.base.scaled;
+          const scaledScenario = p.base.scaled + (baseOnly ? 0 : p.extra.scaled);
+
+          pressures.push({
+            idx: f.idx,
+            name: f.name,
+            state: f.state,
+            inf: f.inf,
+            scaled,
+            scaledScenario
+          });
+
+          totalScaled += Math.abs(scaled);
+          totalScaledScenario += Math.abs(scaledScenario);
+        });
+
+        const systemPressure = totalScaled;
+        const systemPressureScenario = totalScaledScenario;
+
+        const cap = 6.0;
+        const deltas = [];
+        const deltasScenario = [];
+
+        if (totalScaled > 0) {
+          pressures.forEach((p) => {
+            const share = p.scaled / totalScaled;
+            const delta = softCapDelta(share * cap, cap);
+            deltas.push({
+              name: p.name,
+              state: p.state,
+              baseInf: p.inf,
+              delta
+            });
+          });
+        } else {
+          pressures.forEach((p) => {
+            deltas.push({
+              name: p.name,
+              state: p.state,
+              baseInf: p.inf,
+              delta: 0
+            });
+          });
+        }
+
+        if (totalScaledScenario > 0) {
+          pressures.forEach((p) => {
+            const share = p.scaledScenario / totalScaledScenario;
+            const delta = softCapDelta(share * cap, cap);
+            deltasScenario.push({
+              name: p.name,
+              state: p.state,
+              baseInf: p.inf,
+              delta
+            });
+          });
+        } else {
+          pressures.forEach((p) => {
+            deltasScenario.push({
+              name: p.name,
+              state: p.state,
+              baseInf: p.inf,
+              delta: 0
+            });
+          });
+        }
+
+        const predicted = deltas.map((d) => ({
+          name: d.name,
+          state: d.state,
+          current: d.baseInf,
+          predicted: clamp(d.baseInf + d.delta, 0, 100),
+          delta: d.delta
+        }));
+
+        const predictedScenario = deltasScenario.map((d) => ({
+          name: d.name,
+          state: d.state,
+          current: d.baseInf,
+          predicted: clamp(d.baseInf + d.delta, 0, 100),
+          delta: d.delta
+        }));
+
+        const sumBase = predicted.reduce((s, f) => s + f.predicted, 0) || 1;
+        const sumScenario = predictedScenario.reduce((s, f) => s + f.predicted, 0) || 1;
+
+        const normalisedBase = predicted.map((f) => ({
+          ...f,
+          predicted: (f.predicted / sumBase) * 100
+        }));
+
+        const normalisedScenario = predictedScenario.map((f) => ({
+          ...f,
+          predicted: (f.predicted / sumScenario) * 100
+        }));
+
+        renderResults(systemName, systemPressure, systemPressureScenario, normalisedBase, normalisedScenario, baseOnly);
+      }
+
+      function renderResults(systemName, systemPressure, systemPressureScenario, base, scenario, baseOnly) {
+        const systemLabel = document.getElementById("system-label");
+        systemLabel.textContent = `System: ${systemName}`;
+
+        const tbody = document.getElementById("results-body");
+        tbody.innerHTML = "";
+
+        let maxSwing = 0;
+        let scenarioImpact = 0;
+        let conflictRisk = "Low";
+        let conflictRiskClass = "value-ok";
+
+        base.forEach((fBase) => {
+          const fScenario = scenario.find((s) => s.name === fBase.name) || fBase;
+
+          const deltaBase = fBase.predicted - fBase.current;
+          const deltaScenario = fScenario.predicted - fScenario.current;
+          const extra = deltaScenario - deltaBase;
+
+          maxSwing = Math.max(maxSwing, Math.abs(deltaBase));
+          scenarioImpact = Math.max(scenarioImpact, Math.abs(extra));
+
+          const tr = document.createElement("tr");
+
+          const tdName = document.createElement("td");
+          tdName.textContent = fBase.name;
+          tr.appendChild(tdName);
+
+          const tdState = document.createElement("td");
+          const badge = document.createElement("span");
+          badge.className = "badge";
+          const dot = document.createElement("span");
+          dot.className = "badge-dot";
+          badge.appendChild(dot);
+          const label = document.createElement("span");
+          label.textContent = fBase.state === "none" ? "Neutral" : fBase.state.charAt(0).toUpperCase() + fBase.state.slice(1);
+          badge.appendChild(label);
+          tdState.appendChild(badge);
+          tr.appendChild(tdState);
+
+          const tdCurrent = document.createElement("td");
+          tdCurrent.textContent = fBase.current.toFixed(1) + "%";
+          tr.appendChild(tdCurrent);
+
+          const tdPred = document.createElement("td");
+          const badgePred = document.createElement("span");
+          const badgePredDot = document.createElement("span");
+          const badgePredLabel = document.createElement("span");
+          badgePred.className = "badge";
+          badgePredDot.className = "badge-dot";
+
+          if (deltaBase > 0.1) {
+            badgePred.classList.add("badge-up");
+            badgePredLabel.textContent = fBase.predicted.toFixed(1) + "% (up)";
+          } else if (deltaBase < -0.1) {
+            badgePred.classList.add("badge-down");
+            badgePredLabel.textContent = fBase.predicted.toFixed(1) + "% (down)";
+          } else {
+            badgePred.classList.add("badge-neutral");
+            badgePredLabel.textContent = fBase.predicted.toFixed(1) + "% (flat)";
+          }
+
+          badgePred.appendChild(badgePredDot);
+          badgePred.appendChild(badgePredLabel);
+          tdPred.appendChild(badgePred);
+          tr.appendChild(tdPred);
+
+          const tdDelta = document.createElement("td");
+          const sign = deltaBase > 0 ? "+" : "";
+          tdDelta.textContent = sign + deltaBase.toFixed(2) + "%";
+          tr.appendChild(tdDelta);
+
+          const tdScenario = document.createElement("td");
+          tdScenario.textContent = baseOnly
+            ? "—"
+            : fScenario.predicted.toFixed(1) + "%";
+          tr.appendChild(tdScenario);
+
+          const tdRisk = document.createElement("td");
+          const riskBadge = document.createElement("span");
+          const riskDot = document.createElement("span");
+          const riskLabel = document.createElement("span");
+          riskBadge.className = "badge";
+          riskDot.className = "badge-dot";
+
+          const near50 = fBase.predicted >= 45 && fBase.predicted <= 55;
+          const near0 = fBase.predicted <= 5;
+          const near75 = fBase.predicted >= 70;
+
+          if (near50) {
+            riskBadge.classList.add("badge-neutral");
+            riskLabel.textContent = "Conflict band";
+            conflictRisk = "Moderate";
+            conflictRiskClass = "value";
+          } else if (near0) {
+            riskBadge.classList.add("badge-down");
+            riskLabel.textContent = "Retreat risk";
+            conflictRisk = "High";
+            conflictRiskClass = "value-warn";
+          } else if (near75) {
+            riskBadge.classList.add("badge-up");
+            riskLabel.textContent = "Expansion band";
+            conflictRisk = "Moderate";
+            conflictRiskClass = "value";
+          } else {
+            riskLabel.textContent = "Stable";
+          }
+
+          riskBadge.appendChild(riskDot);
+          riskBadge.appendChild(riskLabel);
+          tdRisk.appendChild(riskBadge);
+          tr.appendChild(tdRisk);
+
+          tbody.appendChild(tr);
+        });
+
+        const systemPressureEl = document.getElementById("system-pressure");
+        systemPressureEl.textContent = systemPressure.toFixed(2);
+
+        const systemPressureBar = document.getElementById("system-pressure-bar");
+        const pressureNorm = Math.min(1, systemPressure / 3.0);
+        systemPressureBar.style.transform = "scaleX(" + pressureNorm.toFixed(3) + ")";
+
+        const netSwingEl = document.getElementById("net-swing");
+        netSwingEl.textContent = maxSwing.toFixed(1) + "%";
+
+        const netSwingBar = document.getElementById("net-swing-bar");
+        const swingNorm = Math.min(1, maxSwing / 6.0);
+        netSwingBar.style.transform = "scaleX(" + swingNorm.toFixed(3) + ")";
+
+        const scenarioImpactEl = document.getElementById("scenario-impact");
+        scenarioImpactEl.textContent = baseOnly ? "0.0%" : scenarioImpact.toFixed(1) + "%";
+
+        const scenarioImpactBar = document.getElementById("scenario-impact-bar");
+        const scenarioNorm = baseOnly ? 0 : Math.min(1, scenarioImpact / 4.0);
+        scenarioImpactBar.style.transform = "scaleX(" + scenarioNorm.toFixed(3) + ")";
+
+        const conflictRiskEl = document.getElementById("conflict-risk");
+        conflictRiskEl.textContent = conflictRisk;
+        conflictRiskEl.className = "value " + conflictRiskClass;
+
+        const riskPill = document.getElementById("risk-pill");
+        const riskLabel = document.getElementById("risk-label");
+        if (conflictRisk === "High") {
+          riskPill.style.display = "inline-flex";
+          riskLabel.textContent = "Risk: High (retreat / conflict band)";
+        } else if (conflictRisk === "Moderate") {
+          riskPill.style.display = "inline-flex";
+          riskLabel.textContent = "Risk: Moderate (watch thresholds)";
+        } else {
+          riskPill.style.display = "none";
+        }
+      }
+
+      document.getElementById("predict-btn").addEventListener("click", function () {
+        predictTick(false);
+      });
+
+      document.getElementById("scenario-btn").addEventListener("click", function () {
+        predictTick(true);
+      });
+    })();
+  </script>
+</body>
+</html>
