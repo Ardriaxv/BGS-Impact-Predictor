@@ -1,21 +1,42 @@
-MIT License
+Copyright © 2026 David Hughson. All rights reserved.
 
-Copyright (c) 2026 David 
+This work is protected under international copyright law, including the Berne Convention.
 
-Permission is hereby granted, free of charge, to any person obtaining a copy
-of this software and associated documentation files (the "Software"), to deal
-in the Software without restriction, including without limitation the rights
-to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-copies of the Software, and to permit persons to whom the Software is
-furnished to do so, subject to the following conditions:
+Permission is granted to view, download, and use this work for personal, non commercial purposes only.
 
-The above copyright notice and this permission notice shall be included in all
-copies or substantial portions of the Software.
+The following actions are strictly prohibited without prior written permission from the copyright holder:
+Redistribution of any part of this work
+Commercial use, resale, or monetization
+Modification, adaptation, or creation of derivative works
+Hosting this work on any other platform or service
+Training AI models using this work
+Using this work in any product or service offered to others
 
-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
-SOFTWARE.
+Any permitted use must retain this copyright notice.
+
+For commercial licensing, redistribution rights, or other permissions, contact the copyright holder directly.
+
+Additional Permissions and Restrictions:
+
+1. Non Commercial Research:
+   Permission is granted for this work to be used in academic, educational, or other
+   non commercial research contexts, provided proper attribution is given to the
+   copyright holder.
+
+2. Use in Games:
+   Permission is granted to use this work in non commercial or commercial video games,
+   provided the work is not used to train, develop, or enhance any artificial
+   intelligence systems, and proper attribution is included within the project.
+
+3. Attribution Requirement:
+   Any permitted use of this work must include clear and visible attribution to:
+   "© 2026 David Hughson"
+
+4. AI and Machine Learning Restrictions:
+   The use of this work for training, fine tuning, evaluating, or developing any
+   artificial intelligence, machine learning, neural network, or data‑driven system
+   is strictly prohibited. This includes both commercial and non‑commercial AI use.
+
+These permissions do not override any other restrictions stated in this license.
+Any use outside the permissions listed above requires prior written approval from
+the copyright holder.
