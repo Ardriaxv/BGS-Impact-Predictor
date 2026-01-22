@@ -22,7 +22,7 @@ This tool is ideal for squadrons who want a fast, transparent way to understand 
 
 Features
 
-🔹 Influence Prediction
+Influence Prediction
 
 Calculates predicted influence for up to three factions
 
@@ -32,7 +32,7 @@ Applies soft caps to prevent unrealistic swings
 
 Uses state based multipliers (War, Boom, Election, etc.)
 
-🔹 Activity Modelling
+Activity Modelling
 
 Supports the main BGS relevant actions:
 
@@ -56,7 +56,7 @@ Additional swing
 
 Risk indicators (conflict, retreat, expansion)
 
-🔹 Zero Dependencies
+Zero Dependencies
 
 100% client side
 
@@ -140,6 +140,7 @@ Logic → Edit the JavaScript at the bottom of the file
 No build steps, no dependencies.
 
 Contributing
+
 Contributions are welcome!
 
 Ideas for improvement:
