@@ -129,7 +129,7 @@ Net swing
 No installation required.
 
 Code
-![Screenshot](elite.png)
+
 Development
 Everything is contained in a single HTML file.
 To modify the tool:
